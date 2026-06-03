@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import os
 import string
+import io  # NEW: Used for handling in-memory files
+from gtts import gTTS  # NEW: Google Text-to-Speech engine
 
 
 @st.cache_data
@@ -31,9 +33,8 @@ def apply_runyankole_grammar(words, selected_tense_mode):
         ("how", "are", "you"): "agandi",
         ("thank", "you"): "webare",
         ("thank", "you", "very", "much"): "webare munonga",
-        ("Praise","God"):"mukama asiimwe",
-        ("and","you"):"niiwe",
-    
+        ("praise", "god"): "mukama asiimwe",
+        ("and", "you"): "niiwe",
     }
 
     # 1. PHASE 1: Detect Tense First
@@ -163,8 +164,28 @@ if sentence:
     words = cleaned_sentence.split()
 
     if words:
-        # Clear Streamlit cache if user switches settings to guarantee layout updates
         st.cache_data.clear()
-
         translated_result = apply_runyankole_grammar(words, tense_mode)
+
+        # Display the text output card
         st.success(translated_result.capitalize())
+
+        # --- NEW: AUDIO GENERATION BLOCK ---
+        try:
+            # Clean up the output string to strip raw bracket leftovers '[word]' before speaking
+            clean_speech_text = translated_result.replace('[', '').replace(']', '')
+
+            # Use 'sw' (Swahili) to perfectly emulate phonetic Bantu syllable layouts
+            tts = gTTS(text=clean_speech_text, lang='sw')
+
+            # Store audio bytes directly into RAM using io.BytesIO stream
+            sound_buffer = io.BytesIO()
+            tts.write_to_fp(sound_buffer)
+            sound_buffer.seek(0)
+
+            # Render a native browser audio widget card
+            st.write("🔊 **Listen to Pronunciation:**")
+            st.audio(sound_buffer.read(), format="audio/mp3")
+
+        except Exception as e:
+            st.warning("⚠️ Could not generate audio playback stream at this moment.")

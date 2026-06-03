@@ -31,6 +31,8 @@ def apply_runyankole_grammar(words, selected_tense_mode):
         ("how", "are", "you"): "agandi",
         ("thank", "you"): "webare",
         ("thank", "you", "very", "much"): "webare munonga",
+        ("Praise","God"):"mukama asiimwe",
+        ("and","you"):"niiwe"[,
     }
 
     # 1. PHASE 1: Detect Tense First

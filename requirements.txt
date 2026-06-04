@@ -1,3 +1,5 @@
 gTTS
 streamlit
 pandas
+soundfile
+transformers
